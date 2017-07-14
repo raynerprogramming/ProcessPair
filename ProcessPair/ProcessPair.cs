@@ -8,13 +8,13 @@ namespace ProcessPair
 {
     class ProcessPair
     {
-        public LoadedProcess Dependant { get; set; }
-        public LoadedProcess Independant { get; set; }
+        public LoadedProcess Dependent { get; set; }
+        public LoadedProcess Independent { get; set; }
 
-        public ProcessPair(LoadedProcess dependant, LoadedProcess independant)
+        public ProcessPair(LoadedProcess dependent, LoadedProcess independent)
         {
-            Dependant = dependant;
-            Independant = independant;
+            Dependent = dependent;
+            Independent = independent;
         }
     }
 }

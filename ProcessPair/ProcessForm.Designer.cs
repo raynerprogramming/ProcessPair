@@ -111,9 +111,8 @@
             this.lblError.ForeColor = System.Drawing.Color.Red;
             this.lblError.Location = new System.Drawing.Point(333, 14);
             this.lblError.Name = "lblError";
-            this.lblError.Size = new System.Drawing.Size(35, 13);
+            this.lblError.Size = new System.Drawing.Size(0, 13);
             this.lblError.TabIndex = 7;
-            this.lblError.Text = "label3";
             // 
             // ProcessForm
             // 
