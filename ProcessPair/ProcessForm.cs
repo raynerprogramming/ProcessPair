@@ -29,11 +29,11 @@ namespace ProcessPair
         }
         void WaitForProcess(List<ProcessPair> processList)
         {
-            foreach (var process in processList)
+            ProcessList.Where(p => p.Dependent != null && p.Independent != null).ToList().ForEach(p =>
             {
-                WatchForProcessStart(process);
-                WatchForProcessEnd(process);
-            }
+                WatchForProcessStart(p);
+                WatchForProcessEnd(p);
+            });
         }
         private void WatchForProcessStart(ProcessPair pair)
         {
@@ -116,21 +116,32 @@ namespace ProcessPair
         }
         private void showBalloon(string title, string body)
         {
-            using (NotifyIcon notifyIcon = new NotifyIcon())
+            notifyIcon1.Visible = true;
+
+            if (title != null)
             {
-                notifyIcon.Visible = true;
+                notifyIcon1.BalloonTipTitle = title;
+            }
 
-                if (title != null)
-                {
-                    notifyIcon.BalloonTipTitle = title;
-                }
+            if (body != null)
+            {
+                notifyIcon1.BalloonTipText = body;
+            }
 
-                if (body != null)
-                {
-                    notifyIcon.BalloonTipText = body;
-                }
-                notifyIcon.Icon = SystemIcons.Application;
-                notifyIcon.ShowBalloonTip(30000);
+            notifyIcon1.ShowBalloonTip(30000);
+        }
+        private void ProcessForm_Resize(object sender, EventArgs e)
+        {
+            if (FormWindowState.Minimized == this.WindowState)
+            {
+                notifyIcon1.Visible = true;
+                //notifyIcon1.ShowBalloonTip(200);
+                this.Hide();
+            }
+
+            else if (FormWindowState.Normal == this.WindowState)
+            {
+                notifyIcon1.Visible = false;
             }
         }
 
@@ -182,17 +193,17 @@ namespace ProcessPair
             dt.Columns.Add("Dependant Running", typeof(bool)).ReadOnly = true;
             dt.Columns.Add("Independant", typeof(string)).ReadOnly = true;
             dt.Columns.Add("Independant Running", typeof(bool)).ReadOnly = true;
-            foreach (var process in ProcessList)
-            {
-                var row = dt.NewRow();
-                row[0] = process.Dependent.Name;
-                row[1] = process.Dependent.Running;
-                row[2] = process.Independent.Name;
-                row[3] = process.Independent.Running;
-                dt.Rows.Add(row);
-            }
-
+            ProcessList.Where(p => p.Dependent != null && p.Independent != null).ToList().ForEach(p => addRow(dt, p));
             return dt;
+        }
+        private void addRow(DataTable dt, ProcessPair p)
+        {
+            var row = dt.NewRow();
+            row[0] = p.Dependent.Name;
+            row[1] = p.Dependent.Running;
+            row[2] = p.Independent.Name;
+            row[3] = p.Independent.Running;
+            dt.Rows.Add(row);
         }
         private void BindTable()
         {
@@ -207,6 +218,17 @@ namespace ProcessPair
             SaveProcessToFile();
             BindTable();
         }
+        private void notifyIcon1_MouseDoubleClick(object sender, MouseEventArgs e)
+        {
+            this.Show();
+            this.WindowState = FormWindowState.Normal;
+            this.ShowInTaskbar = true;
+            notifyIcon1.Visible = false;
+        }
+        private void Quit_Menu_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
 
         private bool Valid()
         {
@@ -217,6 +239,7 @@ namespace ProcessPair
             }
             return true;
         }
+
     }
 }
 
