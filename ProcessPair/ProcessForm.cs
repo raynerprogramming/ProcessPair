@@ -11,21 +11,25 @@ using System.Management;
 using System.Diagnostics;
 using System.IO;
 using Newtonsoft.Json;
+using Microsoft.Win32;
 
 namespace ProcessPair
 {
     public partial class ProcessForm : Form
     {
+        //Startup registry key and value
+        private static readonly string StartupKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
+        private static readonly string StartupValue = "ProcessPair";
+
         List<ProcessPair> ProcessList;
         string filepath = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "data", "processlist.json");
         public ProcessForm()
         {
-            ProcessPair PP = new ProcessPair(new LoadedProcess("TslGame.exe"), new LoadedProcess("obs64.exe"));
-            LoadProceessFromFile();
-            //ProcessList = new List<ProcessPair>() { PP };
-            WaitForProcess(ProcessList);
             InitializeComponent();
+            LoadProceessFromFile();
+            WaitForProcess(ProcessList);            
             BindTable();
+            startupBox.Checked = BootOnWindows();
         }
         void WaitForProcess(List<ProcessPair> processList)
         {
@@ -60,6 +64,7 @@ namespace ProcessPair
 
             // The dot in the scope means use the current machine
             string scope = @"\\.\root\CIMV2";
+            //initialize already running processes
             if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(process.Name)).Any())
             {
                 process.Running = true;
@@ -96,6 +101,7 @@ namespace ProcessPair
             ProcessList.Where(x => x.Dependent.Name == processName).All(p => { p.Dependent.Running = false; return true; });
             ProcessList.Where(x => x.Independent.Name == processName).All(p => { p.Independent.Running = false; return true; });
             Console.WriteLine(String.Format("{0} process ended", processName));
+            BindTable();
         }
 
         private void ProcessStarted(object sender, EventArrivedEventArgs e)
@@ -113,6 +119,7 @@ namespace ProcessPair
             ProcessList.Where(x => x.Dependent.Name == processName).All(p => { p.Dependent.Running = true; return true; });
             ProcessList.Where(x => x.Independent.Name == processName).All(p => { p.Independent.Running = true; return true; });
             Console.WriteLine(String.Format("{0} process started", processName));
+            BindTable();
         }
         private void showBalloon(string title, string body)
         {
@@ -188,13 +195,17 @@ namespace ProcessPair
         }
         private DataTable GetDataTable()
         {
-            DataTable dt = new DataTable();
-            dt.Columns.Add("Dependant", typeof(string)).ReadOnly = true;
-            dt.Columns.Add("Dependant Running", typeof(bool)).ReadOnly = true;
-            dt.Columns.Add("Independant", typeof(string)).ReadOnly = true;
-            dt.Columns.Add("Independant Running", typeof(bool)).ReadOnly = true;
-            ProcessList.Where(p => p.Dependent != null && p.Independent != null).ToList().ForEach(p => addRow(dt, p));
-            return dt;
+            using (DataTable Dt = new DataTable())
+            {
+                Dt.Columns.Add("Dependant", typeof(string)).ReadOnly = true;
+                Dt.Columns.Add("Dependant Running", typeof(bool)).ReadOnly = true;
+                Dt.Columns.Add("Independant", typeof(string)).ReadOnly = true;
+                Dt.Columns.Add("Independant Running", typeof(bool)).ReadOnly = true;
+                ProcessList.ForEach(p => Console.WriteLine($"Dependent: {p.Dependent.Name} {p.Dependent.Running}"));
+                ProcessList.ForEach(p => Console.WriteLine($"Independent: {p.Independent.Name} {p.Independent.Running}"));
+                ProcessList.Where(p => p.Dependent != null && p.Independent != null).ToList().ForEach(p => addRow(Dt, p));
+                return Dt;
+            }
         }
         private void addRow(DataTable dt, ProcessPair p)
         {
@@ -207,7 +218,14 @@ namespace ProcessPair
         }
         private void BindTable()
         {
-            gridProcess.DataSource = GetDataTable();
+            if (gridProcess.DataSource != null)
+            {
+                gridProcess.Invoke(new Action(() => gridProcess.DataSource = GetDataTable()));
+            }
+            else
+            {
+                gridProcess.DataSource = GetDataTable();
+            }
         }
 
         private void btnRemove_Click(object sender, EventArgs e)
@@ -239,7 +257,35 @@ namespace ProcessPair
             }
             return true;
         }
+        private static void SetStartup(bool add)
+        {
+            if (add)
+            {
+                //Set the application to run at startup
+                RegistryKey key = Registry.CurrentUser.OpenSubKey(StartupKey, true);
+                key.SetValue(StartupValue, Application.ExecutablePath.ToString());
+            }
+            else
+            {
+                RegistryKey key = Registry.CurrentUser.OpenSubKey(StartupKey, true);
+                key.DeleteValue(StartupValue);
+            }
+        }
+        private static bool BootOnWindows()
+        {
+            using (RegistryKey key = Registry.CurrentUser.OpenSubKey(StartupKey, true))
+            {
+                return key.GetValue(StartupValue) == null ? false : true;
+            }
+        }
 
+        private void startupBox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (startupBox.Checked)
+                SetStartup(true);
+            else
+                SetStartup(false);
+        }
     }
 }
 

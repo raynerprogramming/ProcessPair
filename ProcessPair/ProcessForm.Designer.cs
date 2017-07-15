@@ -43,6 +43,7 @@ namespace ProcessPair
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.startupBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.gridProcess)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -138,20 +139,32 @@ namespace ProcessPair
             this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripMenuItem1});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(153, 48);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(98, 26);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
-            this.toolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(97, 22);
             this.toolStripMenuItem1.Text = "Quit";
             this.toolStripMenuItem1.Click += new System.EventHandler(this.Quit_Menu_Click);
+            // 
+            // startupBox
+            // 
+            this.startupBox.AutoSize = true;
+            this.startupBox.Location = new System.Drawing.Point(247, 49);
+            this.startupBox.Name = "startupBox";
+            this.startupBox.Size = new System.Drawing.Size(120, 17);
+            this.startupBox.TabIndex = 8;
+            this.startupBox.Text = "Start with windows?";
+            this.startupBox.UseVisualStyleBackColor = true;
+            this.startupBox.CheckedChanged += new System.EventHandler(this.startupBox_CheckedChanged);
             // 
             // ProcessForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(584, 355);
+            this.Controls.Add(this.startupBox);
             this.Controls.Add(this.lblError);
             this.Controls.Add(this.gridProcess);
             this.Controls.Add(this.label2);
@@ -183,6 +196,7 @@ namespace ProcessPair
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.CheckBox startupBox;
     }
 }
 
