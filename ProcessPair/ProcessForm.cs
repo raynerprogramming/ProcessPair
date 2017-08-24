@@ -43,9 +43,9 @@ namespace ProcessPair
         {
             WatchForProcessStart(pair.Dependent);
             WatchForProcessStart(pair.Independent);
-            if (pair.Independent.Running == false && pair.Dependent.Running == true)
+            if (pair.Independent.Running == true && pair.Dependent.Running == false)
             {
-                showBalloon($"Start {pair.Dependent.Alias ?? pair.Dependent.Name} dummy", $"{pair.Dependent.Alias ?? pair.Dependent.Name } is running without {pair.Independent.Name ?? pair.Independent.Name}");
+                showBalloon($"Start {pair.Dependent.Alias ?? pair.Dependent.Name}", $"{pair.Dependent.Alias ?? pair.Dependent.Name } is running without {pair.Independent.Name ?? pair.Independent.Name}");
             }
         }
         private void WatchForProcessEnd(ProcessPair pair)
@@ -108,12 +108,17 @@ namespace ProcessPair
         {
             ManagementBaseObject targetInstance = (ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value;
             string processName = targetInstance.Properties["Name"].Value.ToString();
-            var startedPair = ProcessList.Where(x => x.Dependent.Name == processName);
+            var startedPair = ProcessList.Where(x => x.Independent.Name == processName);
             foreach (var started in startedPair)
             {
-                if (started.Independent.Running == false)
+                if (started.Dependent.Running == false)
                 {
-                    showBalloon($"Start {started.Dependent.Alias ?? started.Dependent.Name} dummy", $"{started.Dependent.Alias ?? started.Dependent.Name } is running without {started.Independent.Name ?? started.Independent.Name}");
+
+                    showBalloon($"Process Pair", $"Starting {started.Dependent.Alias ?? started.Dependent.Name } with {started.Independent.Name ?? started.Independent.Name}");
+                    ProcessStartInfo psi = new ProcessStartInfo();
+                    psi.WorkingDirectory = Path.GetDirectoryName(started.Dependent.ExePath);
+                    psi.FileName = started.Dependent.ExePath;
+                    Process.Start(psi);
                 }
             }
             ProcessList.Where(x => x.Dependent.Name == processName).All(p => { p.Dependent.Running = true; return true; });
@@ -285,6 +290,24 @@ namespace ProcessPair
                 SetStartup(true);
             else
                 SetStartup(false);
+        }
+
+        private void btnDependant_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog file = new OpenFileDialog();
+            if(file.ShowDialog() == DialogResult.OK)
+            {
+                txtDependant.Text = file.FileName;
+            }
+        }
+
+        private void btnIndependant_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog file = new OpenFileDialog();
+            if (file.ShowDialog() == DialogResult.OK)
+            {
+                txtIndependant.Text = file.FileName;
+            }
         }
     }
 }
