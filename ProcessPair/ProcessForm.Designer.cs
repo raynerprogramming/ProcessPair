@@ -48,6 +48,8 @@ namespace ProcessPair
             this.txtDependant = new System.Windows.Forms.TextBox();
             this.txtIndependant = new System.Windows.Forms.TextBox();
             this.dlgDependant = new System.Windows.Forms.OpenFileDialog();
+            this.stopProcessBox = new System.Windows.Forms.CheckBox();
+            this.relaunchBox = new System.Windows.Forms.CheckBox();
             ((System.ComponentModel.ISupportInitialize)(this.gridProcess)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -189,11 +191,33 @@ namespace ProcessPair
             this.txtIndependant.Size = new System.Drawing.Size(263, 20);
             this.txtIndependant.TabIndex = 12;
             // 
+            // stopProcessBox
+            // 
+            this.stopProcessBox.AutoSize = true;
+            this.stopProcessBox.Location = new System.Drawing.Point(163, 74);
+            this.stopProcessBox.Name = "stopProcessBox";
+            this.stopProcessBox.Size = new System.Drawing.Size(95, 17);
+            this.stopProcessBox.TabIndex = 13;
+            this.stopProcessBox.Text = "Stop Process?";
+            this.stopProcessBox.UseVisualStyleBackColor = true;
+            // 
+            // relaunchBox
+            // 
+            this.relaunchBox.AutoSize = true;
+            this.relaunchBox.Location = new System.Drawing.Point(289, 74);
+            this.relaunchBox.Name = "relaunchBox";
+            this.relaunchBox.Size = new System.Drawing.Size(78, 17);
+            this.relaunchBox.TabIndex = 14;
+            this.relaunchBox.Text = "Relaunch?";
+            this.relaunchBox.UseVisualStyleBackColor = true;
+            // 
             // ProcessForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(584, 355);
+            this.Controls.Add(this.relaunchBox);
+            this.Controls.Add(this.stopProcessBox);
             this.Controls.Add(this.txtIndependant);
             this.Controls.Add(this.txtDependant);
             this.Controls.Add(this.btnIndependant);
@@ -233,6 +257,8 @@ namespace ProcessPair
         private System.Windows.Forms.TextBox txtDependant;
         private System.Windows.Forms.TextBox txtIndependant;
         private System.Windows.Forms.OpenFileDialog dlgDependant;
+        private System.Windows.Forms.CheckBox stopProcessBox;
+        private System.Windows.Forms.CheckBox relaunchBox;
     }
 }
 

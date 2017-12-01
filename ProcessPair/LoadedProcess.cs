@@ -13,7 +13,8 @@ namespace ProcessPair
         public string Name { get; set; }
         public string Alias { get; set; }
         public string ExePath { get; set; }
-
+        public bool StopProcess { get; set; }
+        public bool ReLaunch { get; set; }
         [JsonIgnoreAttribute]
         public bool? Running { get; set; }
 
@@ -23,6 +24,8 @@ namespace ProcessPair
         public LoadedProcess(string path) :this() {
             Name = Path.GetFileName(path);
             ExePath = path;
+            StopProcess = false;
+            ReLaunch = false;
         }
 
         public LoadedProcess(string path, string alias) :this(path)

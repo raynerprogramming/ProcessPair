@@ -166,6 +166,8 @@ namespace ProcessPair
                     return;
                 }
                 var newPair = new ProcessPair(new LoadedProcess(txtDependant.Text), new LoadedProcess(txtIndependant.Text));
+                newPair.Dependent.ReLaunch = relaunchBox.Checked;
+                newPair.Dependent.StopProcess = stopProcessBox.Checked;
                 ProcessList.Add(newPair);
                 SaveProcessToFile();
                 WatchForProcessStart(newPair);
@@ -206,6 +208,8 @@ namespace ProcessPair
                 Dt.Columns.Add("Dependant Running", typeof(bool)).ReadOnly = true;
                 Dt.Columns.Add("Independant", typeof(string)).ReadOnly = true;
                 Dt.Columns.Add("Independant Running", typeof(bool)).ReadOnly = true;
+                Dt.Columns.Add("Dependant Kill Instead of Launch?", typeof(bool)).ReadOnly = true;
+                Dt.Columns.Add("Relaunch if killed?", typeof(bool)).ReadOnly = true;
                 ProcessList.ForEach(p => Console.WriteLine($"Dependent: {p.Dependent.Name} {p.Dependent.Running}"));
                 ProcessList.ForEach(p => Console.WriteLine($"Independent: {p.Independent.Name} {p.Independent.Running}"));
                 ProcessList.Where(p => p.Dependent != null && p.Independent != null).ToList().ForEach(p => addRow(Dt, p));
@@ -219,6 +223,8 @@ namespace ProcessPair
             row[1] = p.Dependent.Running;
             row[2] = p.Independent.Name;
             row[3] = p.Independent.Running;
+            row[4] = p.Dependent.StopProcess;
+            row[5] = p.Dependent.ReLaunch;
             dt.Rows.Add(row);
         }
         private void BindTable()
