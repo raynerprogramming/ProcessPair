@@ -33,99 +33,26 @@ namespace ProcessPair
         }
         void WaitForProcess(List<ProcessPair> processList)
         {
-            ProcessList.Where(p => p.Dependent != null && p.Independent != null).ToList().ForEach(p =>
-            {
-                WatchForProcessStart(p);
-                WatchForProcessEnd(p);
-            });
-        }
-        private void WatchForProcessStart(ProcessPair pair)
-        {
-            WatchForProcessStart(pair.Dependent);
-            WatchForProcessStart(pair.Independent);
-            if (pair.Independent.Running == true && pair.Dependent.Running == false)
-            {
-                showBalloon($"Start {pair.Dependent.Alias ?? pair.Dependent.Name}", $"{pair.Dependent.Alias ?? pair.Dependent.Name } is running without {pair.Independent.Name ?? pair.Independent.Name}");
-            }
-        }
-        private void WatchForProcessEnd(ProcessPair pair)
-        {
-            WatchForProcessEnd(pair.Dependent);
-            WatchForProcessEnd(pair.Independent);
-        }
-        private ManagementEventWatcher WatchForProcessStart(LoadedProcess process)
-        {
-            string queryString =
-                "SELECT TargetInstance" +
-                "  FROM __InstanceCreationEvent " +
-                "WITHIN  10 " +
-                " WHERE TargetInstance ISA 'Win32_Process' " +
-                "   AND TargetInstance.Name = '" + process.Name + "'";
+            ProcessList.ForEach(p => p.WatchForStart());
+            ProcessList.ForEach(p => p.WatchForEnd());
 
-            // The dot in the scope means use the current machine
-            string scope = @"\\.\root\CIMV2";
-            //initialize already running processes
-            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(process.Name)).Any())
-            {
-                process.Running = true;
-            }
-            // Create a watcher and listen for events
-            ManagementEventWatcher watcher = new ManagementEventWatcher(scope, queryString);
-            watcher.EventArrived += ProcessStarted;
-            watcher.Start();
-            return watcher;
-        }
-        private ManagementEventWatcher WatchForProcessEnd(LoadedProcess process)
-        {
-            string queryString =
-                "SELECT TargetInstance" +
-                "  FROM __InstanceDeletionEvent " +
-                "WITHIN  10 " +
-                " WHERE TargetInstance ISA 'Win32_Process' " +
-                "   AND TargetInstance.Name = '" + process.Name + "'";
 
-            // The dot in the scope means use the current machine
-            string scope = @"\\.\root\CIMV2";
-
-            // Create a watcher and listen for events
-            ManagementEventWatcher watcher = new ManagementEventWatcher(scope, queryString);
-            watcher.EventArrived += ProcessEnded;
-            watcher.Start();
-            return watcher;
+            //ProcessList.Where(p => p.Dependent != null && p.Independent != null && !p.Dependent.StopProcess).ToList().ForEach(p =>
+            //{
+            //    p.Dependent.WatchForEnd(ProcessEnded);
+            //    p.Independent.WatchForEnd(ProcessEnded);
+            //});
+            //ProcessList.Where(p => p.Dependent != null && p.Independent != null && p.Dependent.StopProcess).ToList().ForEach(p =>
+            //{
+            //    p.Independent.WatchForStart(ProcessStarted);
+            //    p.Dependent.WatchForStart(ProcessStarted);
+            //    if (p.Independent.Running == true && p.Dependent.Running == false)
+            //    {
+            //        showBalloon($"Start {p.Dependent.Alias ?? p.Dependent.Name}", $"{p.Dependent.Alias ?? p.Dependent.Name } is running without {p.Independent.Name ?? p.Independent.Name}");
+            //    }
+            //});
         }
 
-        private void ProcessEnded(object sender, EventArrivedEventArgs e)
-        {
-            ManagementBaseObject targetInstance = (ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value;
-            string processName = targetInstance.Properties["Name"].Value.ToString();
-            ProcessList.Where(x => x.Dependent.Name == processName).All(p => { p.Dependent.Running = false; return true; });
-            ProcessList.Where(x => x.Independent.Name == processName).All(p => { p.Independent.Running = false; return true; });
-            Console.WriteLine(String.Format("{0} process ended", processName));
-            BindTable();
-        }
-
-        private void ProcessStarted(object sender, EventArrivedEventArgs e)
-        {
-            ManagementBaseObject targetInstance = (ManagementBaseObject)e.NewEvent.Properties["TargetInstance"].Value;
-            string processName = targetInstance.Properties["Name"].Value.ToString();
-            var startedPair = ProcessList.Where(x => x.Independent.Name == processName);
-            foreach (var started in startedPair)
-            {
-                if (started.Dependent.Running == false)
-                {
-
-                    showBalloon($"Process Pair", $"Starting {started.Dependent.Alias ?? started.Dependent.Name } with {started.Independent.Name ?? started.Independent.Name}");
-                    ProcessStartInfo psi = new ProcessStartInfo();
-                    psi.WorkingDirectory = Path.GetDirectoryName(started.Dependent.ExePath);
-                    psi.FileName = started.Dependent.ExePath;
-                    Process.Start(psi);
-                }
-            }
-            ProcessList.Where(x => x.Dependent.Name == processName).All(p => { p.Dependent.Running = true; return true; });
-            ProcessList.Where(x => x.Independent.Name == processName).All(p => { p.Independent.Running = true; return true; });
-            Console.WriteLine(String.Format("{0} process started", processName));
-            BindTable();
-        }
         private void showBalloon(string title, string body)
         {
             notifyIcon1.Visible = true;
@@ -166,12 +93,12 @@ namespace ProcessPair
                     return;
                 }
                 var newPair = new ProcessPair(new LoadedProcess(txtDependant.Text), new LoadedProcess(txtIndependant.Text));
-                newPair.Dependent.ReLaunch = relaunchBox.Checked;
-                newPair.Dependent.StopProcess = stopProcessBox.Checked;
+                newPair.ReLaunch = relaunchBox.Checked;
+                newPair.StopProcess = stopProcessBox.Checked;
                 ProcessList.Add(newPair);
                 SaveProcessToFile();
-                WatchForProcessStart(newPair);
-                WatchForProcessEnd(newPair);
+                newPair.WatchForStart();
+                newPair.WatchForEnd();
                 BindTable();
             }
         }
@@ -223,8 +150,8 @@ namespace ProcessPair
             row[1] = p.Dependent.Running;
             row[2] = p.Independent.Name;
             row[3] = p.Independent.Running;
-            row[4] = p.Dependent.StopProcess;
-            row[5] = p.Dependent.ReLaunch;
+            row[4] = p.StopProcess;
+            row[5] = p.ReLaunch;
             dt.Rows.Add(row);
         }
         private void BindTable()
