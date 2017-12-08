@@ -103,7 +103,7 @@ namespace ProcessPair
             this.gridProcess.MultiSelect = false;
             this.gridProcess.Name = "gridProcess";
             this.gridProcess.ReadOnly = true;
-            this.gridProcess.Size = new System.Drawing.Size(507, 180);
+            this.gridProcess.Size = new System.Drawing.Size(765, 180);
             this.gridProcess.TabIndex = 6;
             // 
             // lblError
@@ -215,7 +215,7 @@ namespace ProcessPair
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(584, 355);
+            this.ClientSize = new System.Drawing.Size(803, 355);
             this.Controls.Add(this.relaunchBox);
             this.Controls.Add(this.stopProcessBox);
             this.Controls.Add(this.txtIndependant);

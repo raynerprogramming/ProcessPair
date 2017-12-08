@@ -61,45 +61,5 @@ namespace ProcessPair
                 Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Name)).All(p => { p.Kill(); return true; });
             }
         }
-        public ManagementEventWatcher WatchForEnd(EventArrivedEventHandler ProcessEnded)
-        {
-            string queryString =
-                "SELECT TargetInstance" +
-                "  FROM __InstanceDeletionEvent " +
-                "WITHIN  10 " +
-                " WHERE TargetInstance ISA 'Win32_Process' " +
-                "   AND TargetInstance.Name = '" + Name + "'";
-
-            // The dot in the scope means use the current machine
-            string scope = @"\\.\root\CIMV2";
-
-            // Create a watcher and listen for events
-            ManagementEventWatcher watcher = new ManagementEventWatcher(scope, queryString);
-            watcher.EventArrived += ProcessEnded;
-            watcher.Start();
-            return watcher;
-        }
-        public ManagementEventWatcher WatchForStart(EventArrivedEventHandler ProcessStarted)
-        {
-            string queryString =
-                "SELECT TargetInstance" +
-                "  FROM __InstanceCreationEvent " +
-                "WITHIN  10 " +
-                " WHERE TargetInstance ISA 'Win32_Process' " +
-                "   AND TargetInstance.Name = '" + Name + "'";
-
-            // The dot in the scope means use the current machine
-            string scope = @"\\.\root\CIMV2";
-            //initialize already running processes
-            if (Process.GetProcessesByName(Path.GetFileNameWithoutExtension(Name)).Any())
-            {
-                Running = true;
-            }
-            // Create a watcher and listen for events
-            ManagementEventWatcher watcher = new ManagementEventWatcher(scope, queryString);
-            watcher.EventArrived += ProcessStarted;
-            watcher.Start();
-            return watcher;
-        }
     }
 }

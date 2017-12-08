@@ -20,9 +20,10 @@ namespace ProcessPair
         //Startup registry key and value
         private static readonly string StartupKey = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
         private static readonly string StartupValue = "ProcessPair";
-
+        private static List<object> installedApplications;
         List<ProcessPair> ProcessList;
-        string filepath = Path.Combine(Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location), "data", "processlist.json");
+       
+        string filepath = Path.Combine(Path.GetTempPath(),"ProcessPair", "data", "processlist.json");
         public ProcessForm()
         {
             InitializeComponent();
@@ -30,11 +31,17 @@ namespace ProcessPair
             WaitForProcess(ProcessList);            
             BindTable();
             startupBox.Checked = BootOnWindows();
+            
         }
         void WaitForProcess(List<ProcessPair> processList)
         {
-            ProcessList.ForEach(p => p.WatchForStart());
-            ProcessList.ForEach(p => p.WatchForEnd());
+            ProcessList.ForEach(p =>
+            {
+                p.notify = showBalloon;
+                p.bindUI = BindTable;
+                p.WatchForStart();
+                p.WatchForEnd();
+            });
 
 
             //ProcessList.Where(p => p.Dependent != null && p.Independent != null && !p.Dependent.StopProcess).ToList().ForEach(p =>
@@ -53,14 +60,11 @@ namespace ProcessPair
             //});
         }
 
-        private void showBalloon(string title, string body)
+        private void showBalloon(ProcessPair pair, string body)
         {
             notifyIcon1.Visible = true;
 
-            if (title != null)
-            {
-                notifyIcon1.BalloonTipTitle = title;
-            }
+            notifyIcon1.BalloonTipTitle = "ProcessPair";            
 
             if (body != null)
             {
